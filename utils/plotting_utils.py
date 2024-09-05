@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # #############################################################################
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
+
 
 def show_heatmaps(image, heatmaps, concat=True, save_fname=None):
     """

@@ -15,17 +15,17 @@
 # #############################################################################
 import os
 
-import pandas as pd
+import cv2
 import numpy as np
+import pandas as pd
+import torch
 import torchvision
 from skimage import transform
-import cv2
-
-import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 
 from utils.data_utils import get_heatmaps_likelihood
+
 
 # noinspection PyShadowingNames
 class SequentialPoseDataset(Dataset):

@@ -6,8 +6,10 @@
 # Adapted by Helena Russello (helena@russello.dev)
 # ------------------------------------------------------------------------------
 
-from utils.data_utils import get_keypoints_batch
 import torch
+
+from utils.data_utils import get_keypoints_batch
+
 
 def calc_dists(preds, target, normalize):
     dists = torch.zeros((preds.shape[0], preds.shape[1]))

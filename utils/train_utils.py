@@ -14,9 +14,11 @@
 # limitations under the License.
 # #############################################################################
 
-import torch
-import numpy
 import random
+
+import numpy
+import torch
+
 
 def seed_all(seed):
     """
