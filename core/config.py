@@ -34,89 +34,89 @@ class MyConfig(object):
 
         if self.config is not None:
             # Mandatory parameters
-            self.data_folder = self.config['data_folder']
-            self.save_checkpoint = self.config['save_checkpoint']
-            self.load_checkpoint = self.config['load_checkpoint']
+            self.data_folder = self.config["data_folder"]
+            self.save_checkpoint = self.config["save_checkpoint"]
+            self.load_checkpoint = self.config["load_checkpoint"]
 
-            self.frequent = self.config['frequent']
-            self.lr = self.config['lr']
-            self.epochs = self.config['epochs']
-            self.batch_size = self.config['batch_size']
-            self.wandb = self.config['wandb']
+            self.frequent = self.config["frequent"]
+            self.lr = self.config["lr"]
+            self.epochs = self.config["epochs"]
+            self.batch_size = self.config["batch_size"]
+            self.wandb = self.config["wandb"]
 
             # Optional Parameters
-            if 'dataset' in self.config:
-                self.dataset = self.config['dataset']
+            if "dataset" in self.config:
+                self.dataset = self.config["dataset"]
 
-            if 'dataset_csv' in self.config:
-                self.dataset_csv = self.config['dataset_csv']
+            if "dataset_csv" in self.config:
+                self.dataset_csv = self.config["dataset_csv"]
 
-            if 'dataset_test' in self.config:
-                self.dataset_test = self.config['dataset_test']
+            if "dataset_test" in self.config:
+                self.dataset_test = self.config["dataset_test"]
 
-            if 'dataset_h5' in self.config:
-                self.dataset_h5 = self.config['dataset_h5']
+            if "dataset_h5" in self.config:
+                self.dataset_h5 = self.config["dataset_h5"]
 
-            if 'regularize' in self.config:
-                self.mean = self.config['regularize']['mean']
-                self.std = self.config['regularize']['std']
-                self.regularize = self.config['regularize']
+            if "regularize" in self.config:
+                self.mean = self.config["regularize"]["mean"]
+                self.std = self.config["regularize"]["std"]
+                self.regularize = self.config["regularize"]
 
-            if 'lr_decay' in self.config:
-                self.lr_decay = self.config['lr_decay']
+            if "lr_decay" in self.config:
+                self.lr_decay = self.config["lr_decay"]
 
-            if 'seq_length' in self.config:
-                self.seq_length = self.config['seq_length']
+            if "seq_length" in self.config:
+                self.seq_length = self.config["seq_length"]
 
-            if 'group' in self.config:
-                self.group = self.config['group']
+            if "group" in self.config:
+                self.group = self.config["group"]
             else:
                 self.group = ""
-            if 'optimizer' in self.config:
-                self.optimizer = self.config['optimizer']
+            if "optimizer" in self.config:
+                self.optimizer = self.config["optimizer"]
             else:
-                self.optimizer = 'default'
-            if 'depth' in self.config:
-                self.depth = self.config['depth']
+                self.optimizer = "default"
+            if "depth" in self.config:
+                self.depth = self.config["depth"]
             else:
-                self.depth = 3 # initial depth of LEAP
+                self.depth = 3  # initial depth of LEAP
 
-            if 'file_format' in self.config:
-                self.file_format = self.config['file_format']
+            if "file_format" in self.config:
+                self.file_format = self.config["file_format"]
 
-            if 'device' in self.config:
-                self.device = self.config['device']
+            if "device" in self.config:
+                self.device = self.config["device"]
             else:
                 self.device = "cpu"
 
-            if 'keypoints' in self.config:
-                self.keypoints = self.config['keypoints']
+            if "keypoints" in self.config:
+                self.keypoints = self.config["keypoints"]
 
         # override parameters in config file if specified in arguments
         if args.frequent:
             self.frequent = args.frequent
-            self.config['frequent'] = args.frequent
+            self.config["frequent"] = args.frequent
         if args.lr:
             self.lr = args.lr
-            self.config['lr'] = args.lr
+            self.config["lr"] = args.lr
         if args.epochs:
             self.epochs = args.epochs
-            self.config['epochs'] = args.epochs
+            self.config["epochs"] = args.epochs
         if args.batch_size:
             self.batch_size = args.batch_size
-            self.config['batch_size'] = args.batch_size
+            self.config["batch_size"] = args.batch_size
         if args.seq_length:
             self.seq_length = args.seq_length
-            self.config['seq_length'] = args.seq_length
+            self.config["seq_length"] = args.seq_length
         if args.optimizer:
             self.optimizer = args.optimizer
-            self.config['optimizer'] = args.optimizer
+            self.config["optimizer"] = args.optimizer
         if args.group:
             self.group = args.group
-            self.config['group'] = args.group
+            self.config["group"] = args.group
         if args.depth:
             self.depth = args.depth
-            self.config['depth'] = args.depth
+            self.config["depth"] = args.depth
         if args.load_checkpoint:
             self.load_checkpoint = args.load_checkpoint
 
@@ -134,68 +134,63 @@ def parse_args(description):
     """
     parser = argparse.ArgumentParser(description=description)
     # config file
-    parser.add_argument('--config',
-                        help='YAML configuration file',
-                        default="cfg/default-config.yml",
-                        type=str)
+    parser.add_argument(
+        "--config",
+        help="YAML configuration file",
+        default="cfg/default-config.yml",
+        type=str,
+    )
     # training hyper parameters to be overriden from the config file
-    parser.add_argument('--frequent',
-                        help='frequency of logging',
-                        type=int)
-    parser.add_argument('--lr',
-                        help='Learning rate',
-                        type=float)
-    parser.add_argument('--epochs',
-                        help='Number of epochs',
-                        type=int)
-    parser.add_argument('--batch_size',
-                        help='Batch size',
-                        type=int)
-    parser.add_argument('--seq_length',
-                        help='sequence length',
-                        type=int)
-    parser.add_argument('--seed',
-                        help='Random seed',
-                        type=int,
-                        default=42)
-    parser.add_argument('--optimizer',
-                        help='type of optimizer',
-                        type=str)
-    parser.add_argument('--group',
-                        help='group name in wandb',
-                        type=str)
-    parser.add_argument('--depth',
-                        help='Depth of LEAP',
-                        type=int)
-    parser.add_argument('--load_checkpoint',
-                        help='Path to the models',
-                        type=str)
+    parser.add_argument("--frequent", help="frequency of logging", type=int)
+    parser.add_argument("--lr", help="Learning rate", type=float)
+    parser.add_argument("--epochs", help="Number of epochs", type=int)
+    parser.add_argument("--batch_size", help="Batch size", type=int)
+    parser.add_argument("--seq_length", help="sequence length", type=int)
+    parser.add_argument("--seed", help="Random seed", type=int, default=42)
+    parser.add_argument("--optimizer", help="type of optimizer", type=str)
+    parser.add_argument("--group", help="group name in wandb", type=str)
+    parser.add_argument("--depth", help="Depth of LEAP", type=int)
+    parser.add_argument("--load_checkpoint", help="Path to the models", type=str)
     ###############
     # For testing #
     ###############
-    parser.add_argument('--data_root',
-                        help='Path to the models',
-                        default="~/Datasets",
-                        type=str)
+    parser.add_argument(
+        "--data_root", help="Path to the models", default="~/Datasets", type=str
+    )
 
-    parser.add_argument('--models_path',
-                        help='Path to the models',
-                        default="",
-                        type=str)
-    parser.add_argument('--video_dir',
-                        help='Path to video',
-                        default="",
-                        type=str)
+    parser.add_argument(
+        "--models_path", help="Path to the models", default="", type=str
+    )
+    parser.add_argument("--video_dir", help="Path to video", default="", type=str)
 
-    parser.add_argument('--occlusion', dest='occlusion', action='store_true', help='testing with occlusions?')
-    parser.add_argument('--no-occlusion', dest='occlusion', action='store_false', help='testing with occlusions?')
+    parser.add_argument(
+        "--occlusion",
+        dest="occlusion",
+        action="store_true",
+        help="testing with occlusions?",
+    )
+    parser.add_argument(
+        "--no-occlusion",
+        dest="occlusion",
+        action="store_false",
+        help="testing with occlusions?",
+    )
     parser.set_defaults(occlusion=False)
 
-    parser.add_argument('--ood', dest='ood', action='store_true', help='testing with ood?')
-    parser.add_argument('--no-ood', dest='ood', action='store_false', help='testing with ood?')
+    parser.add_argument(
+        "--ood", dest="ood", action="store_true", help="testing with ood?"
+    )
+    parser.add_argument(
+        "--no-ood", dest="ood", action="store_false", help="testing with ood?"
+    )
     parser.set_defaults(ood=False)
 
-    parser.add_argument('--original_size', dest='original_size', action='store_true', help='use original image size?')
+    parser.add_argument(
+        "--original_size",
+        dest="original_size",
+        action="store_true",
+        help="use original image size?",
+    )
     parser.set_defaults(original_size=False)
 
     args, rest = parser.parse_known_args()

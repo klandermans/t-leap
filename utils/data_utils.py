@@ -31,9 +31,9 @@ def get_mean_std(dataloader):
 
     source: https://discuss.pytorch.org/t/about-normalization-using-pre-trained-vgg16-networks/23560/6
     """
-    mean = 0.
-    std = 0.
-    nb_samples = 0.
+    mean = 0.0
+    std = 0.0
+    nb_samples = 0.0
     for data in dataloader:
         batch_samples = data.size(0)
         data = data.view(batch_samples, data.size(1), -1)
@@ -93,21 +93,25 @@ def get_heatmaps(sample, sigma=5, normalize=True):
     :param normalize: Whether to normalize the heatmaps
     :return: The heatmaps of the keypoints
     """
-    keypoints = sample['keypoints']
+    keypoints = sample["keypoints"]
     likelihood = np.ones(np.shape(keypoints)[0])
-    sample['likelihood'] = likelihood  # Likelihood =1
+    sample["likelihood"] = likelihood  # Likelihood =1
     return get_heatmaps_likelihood(sample, sigma, normalize)
 
 
 def get_heatmaps_likelihood(sample, sigma=5, normalize=True):
     """
-        Generates heatmaps from the keypoints of a sample. The std-dev depends on the likelihood of each keypoint. If the likelikhood is high, the std-dev will be smaller.
-        :param sample: The sample from which to generate heatmaps.
-        :param sigma: The standard deviation of the gaussian noise
-        :param normalize: Whether to normalize the heatmaps
-        :return: The heatmaps of the keypoints
-        """
-    image, keypoints, likelihood = sample['image'], sample['keypoints'], sample['likelihood']
+    Generates heatmaps from the keypoints of a sample. The std-dev depends on the likelihood of each keypoint. If the likelikhood is high, the std-dev will be smaller.
+    :param sample: The sample from which to generate heatmaps.
+    :param sigma: The standard deviation of the gaussian noise
+    :param normalize: Whether to normalize the heatmaps
+    :return: The heatmaps of the keypoints
+    """
+    image, keypoints, likelihood = (
+        sample["image"],
+        sample["keypoints"],
+        sample["likelihood"],
+    )
     h = np.shape(image)[0]
     w = np.shape(image)[1]
 
@@ -126,7 +130,7 @@ def get_heatmaps_likelihood(sample, sigma=5, normalize=True):
         i_sigma = sigma
         # i_sigma = sigma / likelihood[i]
         # Gaussian distribution with peak at the keypoint annotation
-        heatmaps[i] = np.exp(-((yy - ky) ** 2 + (xx - kx) ** 2) / (2 * i_sigma ** 2))
+        heatmaps[i] = np.exp(-((yy - ky) ** 2 + (xx - kx) ** 2) / (2 * i_sigma**2))
 
         if not normalize:
             heatmaps[i] /= i_sigma * np.sqrt(2 * np.pi)
@@ -153,6 +157,7 @@ def get_keypoints_original_size(keypoints, bbox, scaling_factor=1):
             orig_keypoints[i][1] = 0
     return orig_keypoints
 
+
 def dataset_split(train_dataset, val_dataset, config, k_fold=1):
     """
     Split the train and validation set according to the settings from config.
@@ -177,13 +182,29 @@ def dataset_split(train_dataset, val_dataset, config, k_fold=1):
     # for each fold make a train and validation set
     for split in range(k_fold):
         start_split = split * len_split
-        split_indices = indices[start_split:start_split+len_split]
+        split_indices = indices[start_split : start_split + len_split]
 
-        train_idx, val_idx = split_indices[train_split:], split_indices[: train_split]
+        train_idx, val_idx = split_indices[train_split:], split_indices[:train_split]
 
         train_sampler = SubsetRandomSampler(train_idx)
         val_sampler = SubsetRandomSampler(val_idx)
-        train_loaders.append(DataLoader(train_dataset, batch_size=config.batch_size, sampler=train_sampler, drop_last=False, worker_init_fn=seed_worker))
-        val_loaders.append(DataLoader(val_dataset, batch_size=1, sampler=val_sampler, drop_last=False, worker_init_fn=seed_worker))
+        train_loaders.append(
+            DataLoader(
+                train_dataset,
+                batch_size=config.batch_size,
+                sampler=train_sampler,
+                drop_last=False,
+                worker_init_fn=seed_worker,
+            )
+        )
+        val_loaders.append(
+            DataLoader(
+                val_dataset,
+                batch_size=1,
+                sampler=val_sampler,
+                drop_last=False,
+                worker_init_fn=seed_worker,
+            )
+        )
 
     return train_loaders, val_loaders

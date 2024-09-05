@@ -30,17 +30,19 @@ from utils.data_utils import get_heatmaps_likelihood
 # noinspection PyShadowingNames
 class SequentialPoseDataset(Dataset):
 
-    def __init__(self,
-                 video_list,
-                 video_dir,
-                 labels_dir,
-                 seq_length,
-                 n_keypoints=17,
-                 transform=None,
-                 normalize=None,
-                 crop_body=True,
-                 is_test=False,
-                 file_format="%d.png"):
+    def __init__(
+        self,
+        video_list,
+        video_dir,
+        labels_dir,
+        seq_length,
+        n_keypoints=17,
+        transform=None,
+        normalize=None,
+        crop_body=True,
+        is_test=False,
+        file_format="%d.png",
+    ):
         """
         Constructs a sequential dataset. Each item is a sequence of frames from videos
         :param video_list: csv file listing videos, start and end of labelled frames (video name, start, end)
@@ -50,7 +52,9 @@ class SequentialPoseDataset(Dataset):
         :param transform: Optional.
         :param normalize: mean and stdev values for normalization
         """
-        self.videos = np.loadtxt(video_list, delimiter=',', dtype=np.unicode, skiprows=1)  # video_name, start, end
+        self.videos = np.loadtxt(
+            video_list, delimiter=",", dtype=np.unicode, skiprows=1
+        )  # video_name, start, end
         self.video_dir = video_dir
         self.labels_dir = labels_dir
         self.seq_length = seq_length
@@ -69,7 +73,9 @@ class SequentialPoseDataset(Dataset):
             self.crop_widths = {}
         self.videos = self.videos.reshape(-1, 3)
         for video, start, end in self.videos:
-            self.dataset.extend([[video, i] for i in range(int(start), int(end) - seq_length + 2)])
+            self.dataset.extend(
+                [[video, i] for i in range(int(start), int(end) - seq_length + 2)]
+            )
             # self.dataset.extend([[video, i] for i in range(int(start), int(end) - self.MAX_SEQ + 2)]) # same number of samples for any seq length
             # self.dataset.extend([[video, i + self.MAX_SEQ - 1] for i in range(int(start), int(end) - self.MAX_SEQ + 2, self.STEP)])  # same number of samples for any seq length
 
@@ -77,21 +83,29 @@ class SequentialPoseDataset(Dataset):
 
         video, start = self.dataset[item][0], self.dataset[item][1]
         frames = self._get_video_frames(video, start, self.file_format, opencv=False)
-        csvfilenmae = video.split('.')[0]+'.csv'
-        labels = pd.read_csv(os.path.join(self.labels_dir,csvfilenmae ))
-        seq_labels = labels[(labels['frame'] >= start) & (labels['frame'] < (start + self.seq_length))].iloc[:, 2:]
+        csvfilenmae = video.split(".")[0] + ".csv"
+        labels = pd.read_csv(os.path.join(self.labels_dir, csvfilenmae))
+        seq_labels = labels[
+            (labels["frame"] >= start) & (labels["frame"] < (start + self.seq_length))
+        ].iloc[:, 2:]
 
         # in csv file, keypoints for a part are in format: part1_x, part1_y, part1_likelihood, part2_x, part2_y, ...
         keypoints_idx = [True, True, False] * self.n_keypoints
-        seq_keypoints = np.array(seq_labels.iloc[:, keypoints_idx]).astype('float')
+        seq_keypoints = np.array(seq_labels.iloc[:, keypoints_idx]).astype("float")
         if seq_keypoints.shape[0] == 0:
             print("here")
-        seq_keypoints = seq_keypoints.reshape([seq_keypoints.shape[0], -1, 2])  # shape (seq_length, n_keypoints, 2)
+        seq_keypoints = seq_keypoints.reshape(
+            [seq_keypoints.shape[0], -1, 2]
+        )  # shape (seq_length, n_keypoints, 2)
 
         likelihood_idx = [False, False, True] * self.n_keypoints
-        seq_likelihood = np.array(seq_labels.iloc[:, likelihood_idx]).astype('float')
+        seq_likelihood = np.array(seq_labels.iloc[:, likelihood_idx]).astype("float")
 
-        sample = {'seq': frames, 'keypoints': seq_keypoints, 'likelihood': seq_likelihood}
+        sample = {
+            "seq": frames,
+            "keypoints": seq_keypoints,
+            "likelihood": seq_likelihood,
+        }
 
         if self.transform:
             for t in self.transform:
@@ -106,25 +120,33 @@ class SequentialPoseDataset(Dataset):
 
         # Generate heatmaps for each frame
         seq_heatmaps = []
-        for i, image in enumerate(sample['seq']):
-            i_sample = {'image': image, 'keypoints': sample['keypoints'][i], 'likelihood': sample['likelihood'][i]}
+        for i, image in enumerate(sample["seq"]):
+            i_sample = {
+                "image": image,
+                "keypoints": sample["keypoints"][i],
+                "likelihood": sample["likelihood"][i],
+            }
             heatmaps = get_heatmaps_likelihood(i_sample)
             seq_heatmaps.append(heatmaps)
         seq_heatmaps = np.stack(seq_heatmaps)
-        sample['heatmaps'] = seq_heatmaps
+        sample["heatmaps"] = seq_heatmaps
 
         # Replace missing keypoints by -1 values
-        sample['keypoints'] = np.nan_to_num(sample['keypoints'], nan=-1)
+        sample["keypoints"] = np.nan_to_num(sample["keypoints"], nan=-1)
 
         if self.normalize:
             tensor = transforms.Compose(
-                [self.ToTensor(), self.Normalize(self.normalize['mean'], self.normalize['std'])])
+                [
+                    self.ToTensor(),
+                    self.Normalize(self.normalize["mean"], self.normalize["std"]),
+                ]
+            )
         else:
             tensor = transforms.Compose([self.ToTensor()])
         sample = tensor(sample)
 
-        sample['video'] = video
-        sample['frame'] = start + self.seq_length - 1
+        sample["video"] = video
+        sample["frame"] = start + self.seq_length - 1
         # sample['frame'] = start
         return sample
 
@@ -142,7 +164,7 @@ class SequentialPoseDataset(Dataset):
         if opencv:
             return self._get_video_frames_opencv(video, start_frame)
 
-        video_name = video.split('.')[0]
+        video_name = video.split(".")[0]
         video_path = os.path.join(self.video_dir, video_name)
 
         frames = []
@@ -169,7 +191,9 @@ class SequentialPoseDataset(Dataset):
         video_path = os.path.join(self.video_dir, video)
         cap = cv2.VideoCapture(video_path)
         # Seek to start of sequence
-        cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame + 1)  # frame 0 = thumbnail of video
+        cap.set(
+            cv2.CAP_PROP_POS_FRAMES, start_frame + 1
+        )  # frame 0 = thumbnail of video
         i = 0
         frames = []
 
@@ -195,8 +219,13 @@ class SequentialPoseDataset(Dataset):
 
         source: https://pytorch.org/tutorials/beginner/data_loading_tutorial.html
         """
+
         def __call__(self, sample):
-            frames, seq_keypoints, seq_heatmaps = sample['seq'], sample['keypoints'], sample['heatmaps']
+            frames, seq_keypoints, seq_heatmaps = (
+                sample["seq"],
+                sample["keypoints"],
+                sample["heatmaps"],
+            )
             # Swap color axis
             # numpy image H x W x C
             # torch image C x H x W
@@ -207,7 +236,11 @@ class SequentialPoseDataset(Dataset):
                 seq_heatmaps[i] = torch.from_numpy(seq_heatmaps[i])
             frames = torch.stack(frames)
 
-            sample['seq'], sample['keypoints'], sample['heatmaps'] = frames, seq_keypoints, seq_heatmaps
+            sample["seq"], sample["keypoints"], sample["heatmaps"] = (
+                frames,
+                seq_keypoints,
+                seq_heatmaps,
+            )
             return sample
 
     # noinspection PyShadowingNames
@@ -228,14 +261,15 @@ class SequentialPoseDataset(Dataset):
 
         source: https://pytorch.org/docs/stable/_modules/torchvision/transforms/transforms.html#Normalize
         """
+
         def __init__(self, mean, std, inplace=False):
             self.normalize = torchvision.transforms.Normalize(mean, std, inplace)
 
         def __call__(self, sample):
-            frames = sample['seq']
+            frames = sample["seq"]
             for i, image in enumerate(frames):
                 frames[i] = self.normalize(image)
-            sample['seq'] = frames
+            sample["seq"] = frames
 
             return sample
 
@@ -251,12 +285,13 @@ class SequentialPoseDataset(Dataset):
 
         source: https://pytorch.org/tutorials/beginner/data_loading_tutorial.html
         """
+
         def __init__(self, output_size):
             assert isinstance(output_size, (int, tuple))
             self.output_size = output_size
 
         def __call__(self, sample):
-            frames, seq_keypoints = sample['seq'], sample['keypoints']
+            frames, seq_keypoints = sample["seq"], sample["keypoints"]
 
             for i, image in enumerate(frames):
 
@@ -276,12 +311,14 @@ class SequentialPoseDataset(Dataset):
                 # For keypoints we swap h and w because x and y axis are inverted in the image
                 seq_keypoints[i] = seq_keypoints[i] * [new_w / w, new_h / h]
 
-            sample['seq'], sample['keypoints'] = frames, seq_keypoints
+            sample["seq"], sample["keypoints"] = frames, seq_keypoints
             return sample
 
     class CropBody(object):
 
-        def __init__(self, margin=50, crop_width=-1, random=False, square=False, keep_orig=False):
+        def __init__(
+            self, margin=50, crop_width=-1, random=False, square=False, keep_orig=False
+        ):
             """
             Crops a sequence of images by placing a bounding box around the keypoints,
             and returns the cropped image and keypoints in a sample
@@ -312,7 +349,7 @@ class SequentialPoseDataset(Dataset):
             return self.crop_width
 
         def __call__(self, sample):
-            frames, seq_keypoints = sample['seq'], sample['keypoints']
+            frames, seq_keypoints = sample["seq"], sample["keypoints"]
 
             x_min = x_max = y_min = y_max = -1
             crop_height = crop_width = self.crop_width
@@ -328,8 +365,12 @@ class SequentialPoseDataset(Dataset):
 
                 keypoints = seq_keypoints[i]
 
-                x_min, y_min = np.nanmin(keypoints, axis=0).astype(int) # Left-most and bottom most keypoints
-                x_max, y_max = np.nanmax(keypoints, axis=0).astype(int) # Right-most and top most keypoints
+                x_min, y_min = np.nanmin(keypoints, axis=0).astype(
+                    int
+                )  # Left-most and bottom most keypoints
+                x_max, y_max = np.nanmax(keypoints, axis=0).astype(
+                    int
+                )  # Right-most and top most keypoints
 
                 h, w = image.shape[:2]
 
@@ -347,7 +388,7 @@ class SequentialPoseDataset(Dataset):
                     # define the bbox for the first frame of the sequence,
                     # the other frames in the sequence will have the same bbox.
                     x_mid = x_min + (x_max - x_min) // 2  # horizontal center of bbox
-                    x_left = x_mid - crop_width // 2   # left side of bbox
+                    x_left = x_mid - crop_width // 2  # left side of bbox
 
                     if self.random and rnd is None:
                         # add random noise to the bbox
@@ -383,19 +424,22 @@ class SequentialPoseDataset(Dataset):
 
                 image = image[y_top:y_bottom, x_left:x_right]  # the cropped image
 
-                keypoints = keypoints - [x_left, y_top]   # adjust the keypoints to the cropped image
+                keypoints = keypoints - [
+                    x_left,
+                    y_top,
+                ]  # adjust the keypoints to the cropped image
 
                 frames[i] = image
                 seq_keypoints[i] = keypoints
 
                 bboxes.append([y_top, y_bottom, x_left, x_right])
 
-            sample['seq'], sample['keypoints'] = frames, seq_keypoints
+            sample["seq"], sample["keypoints"] = frames, seq_keypoints
 
             if self.keep_orig:
-                sample['bboxes'] = bboxes
-                sample['orig_seq'] = originals
-                sample['crop_width'] = crop_width
+                sample["bboxes"] = bboxes
+                sample["orig_seq"] = originals
+                sample["crop_width"] = crop_width
 
             self.set_crop_width(crop_width)
 
@@ -412,6 +456,7 @@ class SequentialPoseDataset(Dataset):
 
         source: https://pytorch.org/tutorials/beginner/data_loading_tutorial.html
         """
+
         def __init__(self, output_size):
             assert isinstance(output_size, (int, tuple))
             self.output_size = output_size
@@ -423,7 +468,7 @@ class SequentialPoseDataset(Dataset):
 
         def __call__(self, sample):
 
-            frames, seq_keypoints = sample['seq'], sample['keypoints']
+            frames, seq_keypoints = sample["seq"], sample["keypoints"]
             left, top = -1, -1
             for i, image in enumerate(frames):
                 keypoints = seq_keypoints[i]
@@ -434,23 +479,23 @@ class SequentialPoseDataset(Dataset):
                 if new_h < h:
                     if top < 0:
                         top = np.random.randint(0, h - new_h)
-                    image = image[top: top + new_h, :]
+                    image = image[top : top + new_h, :]
                     keypoints = keypoints - [0, top]
-                    keypoints[keypoints[:, 1] > new_h, ] = None
-                    keypoints[keypoints[:, 1] < 0, ] = None
+                    keypoints[keypoints[:, 1] > new_h,] = None
+                    keypoints[keypoints[:, 1] < 0,] = None
 
                 if new_w < w:
                     if left < 0:
                         left = np.random.randint(0, w - new_w)
-                    image = image[:, left: left + new_w]
+                    image = image[:, left : left + new_w]
                     keypoints = keypoints - [left, 0]
-                    keypoints[keypoints[:, 0] > new_w, ] = None
-                    keypoints[keypoints[:, 0] < 0, ] = None
+                    keypoints[keypoints[:, 0] > new_w,] = None
+                    keypoints[keypoints[:, 0] < 0,] = None
 
                 frames[i] = image
                 seq_keypoints[i] = keypoints
 
-            sample['seq'], sample['keypoints'] = frames, seq_keypoints
+            sample["seq"], sample["keypoints"] = frames, seq_keypoints
             return sample
 
     # noinspection PyShadowingNames
@@ -462,11 +507,16 @@ class SequentialPoseDataset(Dataset):
 
         source; https://pytorch.org/docs/stable/_modules/torchvision/transforms/transforms.html
         """
+
         def __init__(self, p=0.5):
             self.p = p
 
         def __call__(self, sample):
-            frames, seq_keypoints, seq_likelihood = sample['seq'], sample['keypoints'], sample['likelihood']
+            frames, seq_keypoints, seq_likelihood = (
+                sample["seq"],
+                sample["keypoints"],
+                sample["likelihood"],
+            )
 
             if np.random.random() < self.p:
                 for i, image in enumerate(frames):
@@ -482,7 +532,7 @@ class SequentialPoseDataset(Dataset):
                 seq_keypoints[:, left_idx, :] = seq_keypoints[:, right_idx, :]
                 seq_keypoints[:, right_idx, :] = new_right
 
-            sample['seq'], sample['keypoints'] = frames, seq_keypoints
+            sample["seq"], sample["keypoints"] = frames, seq_keypoints
 
             return sample
 
@@ -493,12 +543,13 @@ class SequentialPoseDataset(Dataset):
         Args:
                 theta (int, tuple): The range of the rotation angle
         """
+
         def __init__(self, theta):
             assert isinstance(theta, (int, tuple))
             self.theta = theta
 
         def __call__(self, sample):
-            frames, seq_keypoints = sample['seq'], sample['keypoints']
+            frames, seq_keypoints = sample["seq"], sample["keypoints"]
 
             # Get a random rotation angle between 0 and the max number of dregrees
             if isinstance(self.theta, int):
@@ -518,9 +569,11 @@ class SequentialPoseDataset(Dataset):
                 # Rotate the keypoints coordinates
                 keypoints_rotate = np.transpose(rotation_matrix[:, 0:2])
                 keypoints_offset = rotation_matrix[:, 2]
-                seq_keypoints[i] = np.matmul(seq_keypoints[i], keypoints_rotate) + keypoints_offset
+                seq_keypoints[i] = (
+                    np.matmul(seq_keypoints[i], keypoints_rotate) + keypoints_offset
+                )
 
-            sample['seq'], sample['keypoints'] = frames, seq_keypoints
+            sample["seq"], sample["keypoints"] = frames, seq_keypoints
             return sample
 
     # noinspection PyShadowingNames
@@ -534,30 +587,34 @@ class SequentialPoseDataset(Dataset):
                    Should be between 0.1 and 3.0
 
         source: https://pytorch.org/docs/stable/_modules/torchvision/transforms/transforms.html#ColorJitter
-       """
+        """
 
         def __init__(self, brightness=(0, 0), contrast=(1, 1)):
             self.brightness = self._check_value(brightness, bound=(-100, 100))
             self.contrast = self._check_value(contrast, bound=(-3.0, 3.0))
 
         def __call__(self, sample):
-            frames = sample['seq']
-            brightness_factor = np.random.uniform(self.brightness[0], self.brightness[1])
+            frames = sample["seq"]
+            brightness_factor = np.random.uniform(
+                self.brightness[0], self.brightness[1]
+            )
             contrast_factor = np.random.uniform(self.contrast[0], self.contrast[1])
             for i, image in enumerate(frames):
                 new_image = np.zeros_like(image)
-                cv2.convertScaleAbs(image, new_image, alpha=contrast_factor, beta=brightness_factor)
+                cv2.convertScaleAbs(
+                    image, new_image, alpha=contrast_factor, beta=brightness_factor
+                )
                 frames[i] = new_image
 
-            sample['seq'] = frames
+            sample["seq"] = frames
             return sample
 
         def _check_value(self, value, bound):
             assert isinstance(value, tuple)
-            assert (bound[0] <= value[0] <= value[1] <= bound[1])
+            assert bound[0] <= value[0] <= value[1] <= bound[1]
             # tuple
             return value
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

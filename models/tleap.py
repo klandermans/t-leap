@@ -15,7 +15,7 @@
 # #############################################################################
 from torch import nn
 
-#from torchsummary import summary
+# from torchsummary import summary
 
 
 class TLEAP(nn.Module):
@@ -42,21 +42,37 @@ class TLEAP(nn.Module):
 
         self.myparams = self.parameters()
 
-    def _conv_block(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1):
+    def _conv_block(
+        self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1
+    ):
         """
         Creates a convolutional module followed by a ReLU
         """
         if self.is_3D:
             return nn.Sequential(
-                nn.Conv3d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, dilation=(1, dilation, dilation)),
+                nn.Conv3d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=kernel_size,
+                    stride=stride,
+                    padding=padding,
+                    dilation=(1, dilation, dilation),
+                ),
                 nn.ReLU(),
-                nn.BatchNorm3d(out_channels)
+                nn.BatchNorm3d(out_channels),
             )
         else:
             return nn.Sequential(
-                nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding, dilation=dilation),
+                nn.Conv2d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=kernel_size,
+                    stride=stride,
+                    padding=padding,
+                    dilation=dilation,
+                ),
                 nn.ReLU(),
-                nn.BatchNorm2d(out_channels)
+                nn.BatchNorm2d(out_channels),
             )
 
     def _conv_transpose(self, in_channels, out_channels, weight_init=True):
@@ -64,11 +80,23 @@ class TLEAP(nn.Module):
         Creates a transpose convolution module and initialize the weights with Xavier intitialization
         """
         if self.is_3D:
-            convT = nn.ConvTranspose3d(in_channels, out_channels, kernel_size=(1, 3, 3), stride=(1, 2, 2),
-                                       padding=(0, 1, 1), output_padding=(0, 1, 1))
+            convT = nn.ConvTranspose3d(
+                in_channels,
+                out_channels,
+                kernel_size=(1, 3, 3),
+                stride=(1, 2, 2),
+                padding=(0, 1, 1),
+                output_padding=(0, 1, 1),
+            )
         else:
-            convT = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=(3, 3), stride=(2, 2),
-                                       padding=(1, 1), output_padding=(1, 1))
+            convT = nn.ConvTranspose2d(
+                in_channels,
+                out_channels,
+                kernel_size=(3, 3),
+                stride=(2, 2),
+                padding=(1, 1),
+                output_padding=(1, 1),
+            )
         if weight_init:
             convT.weight.data = nn.init.xavier_normal_(convT.weight.data)
         return convT
@@ -88,34 +116,59 @@ class TLEAP(nn.Module):
         self.encoder = nn.Sequential()
 
         for i in range(depth):
-            self.encoder.add_module("enc_conv_%d_1" % (i+1), self._conv_block(enc_sizes[i], enc_sizes[i+1], dilation=1))
-            self.encoder.add_module("enc_conv_%d_2" % (i+1), self._conv_block(enc_sizes[i+1], enc_sizes[i+1], dilation=1))
-            self.encoder.add_module("enc_conv_%d_3" % (i+1), self._conv_block(enc_sizes[i+1], enc_sizes[i+1], dilation=1))
-            if i < depth-1:
+            self.encoder.add_module(
+                "enc_conv_%d_1" % (i + 1),
+                self._conv_block(enc_sizes[i], enc_sizes[i + 1], dilation=1),
+            )
+            self.encoder.add_module(
+                "enc_conv_%d_2" % (i + 1),
+                self._conv_block(enc_sizes[i + 1], enc_sizes[i + 1], dilation=1),
+            )
+            self.encoder.add_module(
+                "enc_conv_%d_3" % (i + 1),
+                self._conv_block(enc_sizes[i + 1], enc_sizes[i + 1], dilation=1),
+            )
+            if i < depth - 1:
                 if self.is_3D and i == 0:
-                    self.encoder.add_module("enc_max_%d" % (i + 1),
-                                            self._max_pool(kernel_size=(self.seq_length // 2, 2, 2)))
+                    self.encoder.add_module(
+                        "enc_max_%d" % (i + 1),
+                        self._max_pool(kernel_size=(self.seq_length // 2, 2, 2)),
+                    )
                 elif self.is_3D and i > 1:
-                    self.encoder.add_module("enc_max_%d" % (i + 1), self._max_pool(kernel_size=(1, 2, 2)))
+                    self.encoder.add_module(
+                        "enc_max_%d" % (i + 1), self._max_pool(kernel_size=(1, 2, 2))
+                    )
                 else:
-                    self.encoder.add_module("enc_max_%d" % (i+1), self._max_pool())
+                    self.encoder.add_module("enc_max_%d" % (i + 1), self._max_pool())
 
         # Decoder
         dec_sizes = []
-        for i in range(depth-1, 0, -1):
-            dec_sizes.append(self.n_filters * 2 ** i)
+        for i in range(depth - 1, 0, -1):
+            dec_sizes.append(self.n_filters * 2**i)
         self.decoder = nn.Sequential()
-        for i in range(len(dec_sizes)-1):
+        for i in range(len(dec_sizes) - 1):
             # Deconv_4
-            self.decoder.add_module("dec_convT_%d" % (i+1),
-                                    nn.Sequential(self._conv_transpose(dec_sizes[i], dec_sizes[i+1]),
-                                                  nn.ReLU()))
+            self.decoder.add_module(
+                "dec_convT_%d" % (i + 1),
+                nn.Sequential(
+                    self._conv_transpose(dec_sizes[i], dec_sizes[i + 1]), nn.ReLU()
+                ),
+            )
             # Conv_5
-            self.decoder.add_module("dec_conv_%d_1" % (i+1), self._conv_block(dec_sizes[i+1], dec_sizes[i+1]))
-            self.decoder.add_module("dec_conv_%d_2" % (i+1), self._conv_block(dec_sizes[i+1], dec_sizes[i+1]))
+            self.decoder.add_module(
+                "dec_conv_%d_1" % (i + 1),
+                self._conv_block(dec_sizes[i + 1], dec_sizes[i + 1]),
+            )
+            self.decoder.add_module(
+                "dec_conv_%d_2" % (i + 1),
+                self._conv_block(dec_sizes[i + 1], dec_sizes[i + 1]),
+            )
 
         # Deconv_6
-        self.decoder.add_module("dec_convT_%d_1" % (depth-1), self._conv_transpose(dec_sizes[-1], dec_sizes[-1]))
+        self.decoder.add_module(
+            "dec_convT_%d_1" % (depth - 1),
+            self._conv_transpose(dec_sizes[-1], dec_sizes[-1]),
+        )
         # self.decoder.add_module("dec_conv_%d_2" % (depth-1),
         #                         self._conv_block(dec_sizes[-1], self.output_channels,
         #                                          kernel_size=1, stride=1, padding=0))
@@ -139,12 +192,16 @@ class TLEAP(nn.Module):
         if self.is_3D:
             out = out[:, :, -1, :, :]  # Get rid of the seq_length dimension
 
-        out = out.permute([0, 2, 3, 1]).contiguous()  # [batch_size, height, width, channels]
+        out = out.permute(
+            [0, 2, 3, 1]
+        ).contiguous()  # [batch_size, height, width, channels]
         out = self.fc6(out)
         out = self.softmax(out)  # Softmax on the channel dimension (dim=3)
 
         # Back to normal dimensions
-        out = out.permute([0, 3, 1, 2]).contiguous()  # [batch_size, channels, height, width]
+        out = out.permute(
+            [0, 3, 1, 2]
+        ).contiguous()  # [batch_size, channels, height, width]
 
         # If the original size could not be recovered from the deconvolutions
         # Then upsample to original size.
@@ -152,7 +209,7 @@ class TLEAP(nn.Module):
         out_h, out_w = out.size()[-2], out.size()[-1]
 
         if out_h != original_h or out_w != original_w:
-            up = nn.Upsample(size=[original_h, original_w], mode='nearest')
+            up = nn.Upsample(size=[original_h, original_w], mode="nearest")
             out = up(out)
 
         return out
@@ -165,7 +222,8 @@ class TLEAP(nn.Module):
         def forward(self, x):
             return x.permute(*self.shape)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # For debugging only
     # model = TLEAP(in_channels=3, out_channels=17, seq_length=4, depth=4)
     # summary(model, input_data=(4,3,200,200))

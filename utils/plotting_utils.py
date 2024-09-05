@@ -28,7 +28,7 @@ def show_heatmaps(image, heatmaps, concat=True, save_fname=None):
     :return: None.
     """
     if type(image) == torch.Tensor:
-        image = image.permute(1,2,0).to('cpu')
+        image = image.permute(1, 2, 0).to("cpu")
 
     h, w, _ = np.shape(image)
 
@@ -44,8 +44,8 @@ def show_heatmaps(image, heatmaps, concat=True, save_fname=None):
             heatmaps_plt += heatmap
 
         plt.figure()
-        img1 = plt.imshow(image, interpolation='none', cmap='gray')
-        img2 = plt.imshow(heatmaps_plt, interpolation='none', cmap='jet', alpha=0.5)
+        img1 = plt.imshow(image, interpolation="none", cmap="gray")
+        img2 = plt.imshow(heatmaps_plt, interpolation="none", cmap="jet", alpha=0.5)
 
         if save_fname:
             plt.savefig(save_fname)
@@ -56,15 +56,24 @@ def show_heatmaps(image, heatmaps, concat=True, save_fname=None):
             heatmaps_plt = heatmap
 
             plt.figure()
-            img1 = plt.imshow(image, interpolation='none', cmap='gray')
-            img2 = plt.imshow(heatmaps_plt, interpolation='none', cmap='jet', alpha=0.5)
+            img1 = plt.imshow(image, interpolation="none", cmap="gray")
+            img2 = plt.imshow(heatmaps_plt, interpolation="none", cmap="jet", alpha=0.5)
 
             if save_fname:
-                plt.savefig(save_fname+'_%d.png' % i)
+                plt.savefig(save_fname + "_%d.png" % i)
                 plt.close()
 
 
-def show_keypoints(image, keypoints, save=False, save_fname='keypoints_plot.png', cmap='viridis', tb=True, colormap=None, figsize=(5,5)):
+def show_keypoints(
+    image,
+    keypoints,
+    save=False,
+    save_fname="keypoints_plot.png",
+    cmap="viridis",
+    tb=True,
+    colormap=None,
+    figsize=(5, 5),
+):
     """
     Shows the keypoints on top of the image with Pyplot.
     :param image: The image to display.
@@ -78,7 +87,7 @@ def show_keypoints(image, keypoints, save=False, save_fname='keypoints_plot.png'
     :return: The figure.
     """
     if type(image) == torch.Tensor and (image.size()[0] == 3 or image.size()[0] == 1):
-        image = image.permute(1, 2, 0).to('cpu')
+        image = image.permute(1, 2, 0).to("cpu")
     if len(np.shape(image)) == 3 and np.shape(image)[2] == 1:
         image = np.reshape(image, np.shape(image)[0:2])
     if type(keypoints) == torch.Tensor:
@@ -90,18 +99,30 @@ def show_keypoints(image, keypoints, save=False, save_fname='keypoints_plot.png'
         image = image.squeeze().detach().numpy()
         if image.max() > 1:
             image = image.astype(np.int)
-    plt.axis('off')
+    plt.axis("off")
     plt.imshow(image, cmap=cmap)
     if colormap is None:
-        colormap = ['navy', 'mediumblue', 'blue',
-                    'dodgerblue', 'lightskyblue', 'deepskyblue',
-                    'turquoise', 'aquamarine', 'palegreen',
-                    'khaki', 'yellow', 'gold',
-                    'orange', 'darkorange',
-                    'orangered', 'red', 'darkred'
-                    ]
+        colormap = [
+            "navy",
+            "mediumblue",
+            "blue",
+            "dodgerblue",
+            "lightskyblue",
+            "deepskyblue",
+            "turquoise",
+            "aquamarine",
+            "palegreen",
+            "khaki",
+            "yellow",
+            "gold",
+            "orange",
+            "darkorange",
+            "orangered",
+            "red",
+            "darkred",
+        ]
         if keypoints.shape[0] != 17:
-            colormap="red"
+            colormap = "red"
 
     # Don't display keypoints that are out of bounds (e.g., keypoints at (-1,-1))
     h, w = image.shape[:2]
@@ -112,12 +133,12 @@ def show_keypoints(image, keypoints, save=False, save_fname='keypoints_plot.png'
     keypoints[keypoints[:, 0] > w,] = np.nan
     keypoints[keypoints[:, 0] < 0,] = np.nan
 
-    plt.scatter(keypoints[:, 0], keypoints[:, 1], s=30, marker='o', c=colormap)
+    plt.scatter(keypoints[:, 0], keypoints[:, 1], s=30, marker="o", c=colormap)
 
     plt.tight_layout()
     # plt.savefig("test-img.png", pad_inches=0, transparent=True, bbox_inches='tight')
     if save:
-        plt.savefig(save_fname, transparent=True, bbox_inches='tight', pad_inches=0)
+        plt.savefig(save_fname, transparent=True, bbox_inches="tight", pad_inches=0)
         plt.close()
     elif not tb:
         plt.pause(0.001)

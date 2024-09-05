@@ -25,7 +25,7 @@ def calc_dists(preds, target, normalize):
 
 
 def dist_acc(dists, thr=0.5):
-    ''' Return percentage below threshold while ignoring values with a -1 '''
+    """Return percentage below threshold while ignoring values with a -1"""
     dist_cal = torch.ne(dists, -1)
     num_dist_cal = dist_cal.sum()
     if num_dist_cal > 0:
@@ -54,14 +54,15 @@ def PCK(targets, predictions, thr=0.5, norm=10):
 
     return _accuracy(targets, predictions, thr, normalize)
 
+
 def _accuracy(targets, predictions, thr, normalize):
     """
-        Calculates the percentage of correct keypoints
-        :param targets: the target keypoints
-        :param predictions: the predicted HEATMAPS
-        :param thr: threshold under which a keypoint is considered correct
-        :return: the PCK per batch image, the mean PCK, and the number of correct keypoints per batch image
-        """
+    Calculates the percentage of correct keypoints
+    :param targets: the target keypoints
+    :param predictions: the predicted HEATMAPS
+    :param thr: threshold under which a keypoint is considered correct
+    :return: the PCK per batch image, the mean PCK, and the number of correct keypoints per batch image
+    """
     dists = calc_dists(predictions, targets, normalize)
 
     batch_size = targets.shape[0]
@@ -79,7 +80,8 @@ def _accuracy(targets, predictions, thr, normalize):
 
     return acc, torch.mean(acc), cnt
 
-def PCKh(targets, predictions, thr=0.5, head_index=[12,13]):
+
+def PCKh(targets, predictions, thr=0.5, head_index=[12, 13]):
     """
     Calculates the PCK-h metric (Percentage of Correct Keypoints with respect to head size).
     :param targets: the target keypoints
@@ -95,10 +97,13 @@ def PCKh(targets, predictions, thr=0.5, head_index=[12,13]):
 
     # for simplicity we only take the size of the first image in the batch
     # Note that for testing, the batch size is always 1, so evaluation results remain correct
-    head_size = torch.norm(targets[0, head_index[0]] - targets[0, head_index[1]]) # euclidian norm
+    head_size = torch.norm(
+        targets[0, head_index[0]] - targets[0, head_index[1]]
+    )  # euclidian norm
     thr = head_size * thr
 
     return _accuracy(targets, predictions, thr, normalize)
+
 
 def euclidian_distance_error(targets, predictions, mean=True):
     """Euclidian distance between the ground truth and prediction for a batch
@@ -111,7 +116,9 @@ def euclidian_distance_error(targets, predictions, mean=True):
         for j in range(targets.size(1)):
             if targets[b, j, 0] < 0 or targets[b, j, 1] < 0:
                 continue
-            eucl_dist[b, j] = (torch.sqrt(torch.sum((targets[b, j] - predictions[b, j]) ** 2)))
+            eucl_dist[b, j] = torch.sqrt(
+                torch.sum((targets[b, j] - predictions[b, j]) ** 2)
+            )
 
     # eucl_dist = torch.sqrt((targets - predictions)**2)
     if mean:

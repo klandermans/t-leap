@@ -57,14 +57,17 @@ def save_model(config, model, epoch, optimizer, scheduler, loss, path):
     :param path: the path where to save
     :return: The path where the state was saved
     """
-    torch.save({
-        'config': config,
-        'epoch': epoch,
-        'model': model.state_dict(),
-        'optimizer': optimizer.state_dict(),
-        'scheduler': scheduler.state_dict(),
-        'loss': loss
-    }, path)
+    torch.save(
+        {
+            "config": config,
+            "epoch": epoch,
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            "scheduler": scheduler.state_dict(),
+            "loss": loss,
+        },
+        path,
+    )
     return path
 
 
