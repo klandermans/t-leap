@@ -42,7 +42,7 @@ def show_heatmaps(image, heatmaps, concat=True, save_fname=None):
         for i, heatmap in enumerate(heatmaps):
             heatmaps_plt += heatmap
 
-        fig = plt.figure()
+        plt.figure()
         img1 = plt.imshow(image, interpolation='none', cmap='gray')
         img2 = plt.imshow(heatmaps_plt, interpolation='none', cmap='jet', alpha=0.5)
 
@@ -54,7 +54,7 @@ def show_heatmaps(image, heatmaps, concat=True, save_fname=None):
         for i, heatmap in enumerate(heatmaps):
             heatmaps_plt = heatmap
 
-            fig = plt.figure()
+            plt.figure()
             img1 = plt.imshow(image, interpolation='none', cmap='gray')
             img2 = plt.imshow(heatmaps_plt, interpolation='none', cmap='jet', alpha=0.5)
 

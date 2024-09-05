@@ -11,14 +11,14 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from datasets.seq_pose_dataset import SequentialPoseDataset
-from torch.optim import Adam, lr_scheduler, SGD
+from torch.optim import Adam, lr_scheduler
 
 # Package imports
 import core.config
 from models.tleap import TLEAP
-from utils.plotting_utils import show_heatmaps, show_keypoints
-from utils.data_utils import get_keypoints, get_keypoints_batch, dataset_split
-from utils.train_utils import save_model, load_model, seed_all, seed_worker
+from utils.plotting_utils import show_keypoints
+from utils.data_utils import get_keypoints
+from utils.train_utils import load_model, seed_all, seed_worker
 from core.evaluate import euclidian_distance_error, PCKh
 
 
@@ -74,11 +74,11 @@ def main():
     seed_all(config.seed)
 
     # Tensorboard summaries
-    current_time = datetime.now().strftime('%b%d_%H-%M-%S')
+    datetime.now().strftime('%b%d_%H-%M-%S')
 
 
     # Appendix to file names for saved models.
-    tb_comment = 'LR_%.6f_BATCH_%d_EPOCH_%d_SEQ_%d' % (config.lr, config.batch_size, config.epochs, config.seq_length)
+    'LR_%.6f_BATCH_%d_EPOCH_%d_SEQ_%d' % (config.lr, config.batch_size, config.epochs, config.seq_length)
     ###########################
     # DATASET                 #
     ###########################
@@ -113,7 +113,7 @@ def main():
     if config.load_checkpoint:
         checkpoint = load_model(config.load_checkpoint)
         config = checkpoint['config']
-        start_epoch = checkpoint['epoch']
+        checkpoint['epoch']
         model.load_state_dict(checkpoint['model'])
         optimizer.load_state_dict(checkpoint['optimizer'])
         scheduler.load_state_dict(checkpoint['scheduler'])

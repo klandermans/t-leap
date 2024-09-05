@@ -18,7 +18,6 @@ import os
 from datetime import datetime
 
 # scipy imports
-import numpy as np
 import matplotlib.pyplot as plt
 
 # Pytorch imports
@@ -31,8 +30,8 @@ from torch.optim import Adam, lr_scheduler, SGD
 # Package imports
 import core.config
 from models.tleap import TLEAP
-from utils.plotting_utils import show_heatmaps, show_keypoints
-from utils.data_utils import get_keypoints, get_keypoints_batch, dataset_split
+from utils.plotting_utils import show_keypoints
+from utils.data_utils import get_keypoints
 from utils.train_utils import save_model, load_model, seed_all, seed_worker
 from core.evaluate import euclidian_distance_error, PCKh
 
@@ -239,7 +238,7 @@ def main():
 
         if config.save_checkpoint:
             model_save_path = os.path.join(config.save_checkpoint, tb_comment + '_' + current_time + '.model')
-            model_saved = save_model(config, model, epoch, optimizer, scheduler, criterion, model_save_path )
+            save_model(config, model, epoch, optimizer, scheduler, criterion, model_save_path )
             print(f"Saved model at {model_save_path}")
 
         epoch += 1

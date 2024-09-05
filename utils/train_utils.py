@@ -14,10 +14,7 @@
 # limitations under the License.
 # #############################################################################
 
-import argparse
-import core.config
 import torch
-import os
 import numpy
 import random
 

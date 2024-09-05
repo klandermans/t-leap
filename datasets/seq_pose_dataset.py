@@ -18,15 +18,13 @@ import os
 import pandas as pd
 import numpy as np
 import torchvision
-from skimage import io, transform
-import matplotlib.pyplot as plt
+from skimage import transform
 import cv2
 
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-from utils.plotting_utils import show_keypoints
 from utils.data_utils import get_heatmaps_likelihood
 
 # noinspection PyShadowingNames

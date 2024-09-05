@@ -6,8 +6,7 @@
 # Adapted by Helena Russello (helena@russello.dev)
 # ------------------------------------------------------------------------------
 
-import numpy as np
-from utils.data_utils import get_keypoints, get_keypoints_batch
+from utils.data_utils import get_keypoints_batch
 import torch
 
 def calc_dists(preds, target, normalize):
@@ -43,7 +42,7 @@ def PCK(targets, predictions, thr=0.5, norm=10):
     """
     h = predictions.shape[2]
     w = predictions.shape[3]
-    batch_size = targets.shape[0]
+    targets.shape[0]
     n_keypoints = targets.shape[1]
     predictions = get_keypoints_batch(predictions)
 
@@ -87,7 +86,7 @@ def PCKh(targets, predictions, thr=0.5, head_index=[12,13]):
     :param head_index: index of the head keypoints
     :return: the PCK per batch image, the mean PCK, and the number of correct keypoints per batch image
     """
-    batch_size = targets.shape[0]
+    targets.shape[0]
     n_keypoints = targets.shape[1]
     predictions = get_keypoints_batch(predictions)
     normalize = torch.ones((n_keypoints, 2))
